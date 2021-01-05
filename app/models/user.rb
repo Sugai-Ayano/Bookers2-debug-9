@@ -9,24 +9,19 @@ class User < ApplicationRecord
   validates :name, length: {maximum: 20, minimum: 2}, uniqueness: true
   validates :introduction, length: {maximum: 50}
 
-  # 自分がフォローされる（被フォロー）側の関係性
-  has_many :reverse_of_relationships, class_name: "Relationship", foreign_key: "followed_id", dependent: :destroy
-  # 自分がフォローする（与フォロー）側の関係性
-  has_many :relationships, class_name: "Relationship", foreign_key: "follower_id", dependent: :destroy
-  # 被フォロー関係を通じて参照→自分をフォローしている人
-  has_many :followers, through: :reverse_of_relationships, source: :follower
-  # 与フォロー関係を通じて参照→自分がフォローしている人
-  has_many :followings, through: :relationships, source: :followed
-
-  def follow(user_id)
-    relationships.create(followed_id: user_id)
-  end
-
-  def unfollow(user_id)
-    relationships.find_by(followed_id: user_id).destroy
-  end
-
-  def followings?(user)
-    followings.include?(user)
-  end
+　def self.search_for(content, method)
+　   # methodがperfectだったら
+    if method == 'perfect'
+      # データベースから条件に一致したものを一件or複数とってくる
+      User.where(name: content)
+      # perfctじゃなかったらforword（前方一致）に移動する
+    elsif method == 'forward'
+      User.where('name LIKE ?', content + '%')
+      # perfctじゃなかったらforword（後方一致）に移動する
+    elsif method == 'backward'
+      User.where('name LIKE ?', '%' + content)
+    else
+      # 全く一致しない場合
+      User.where('name LIKE ?', '%' + content + '%')
+    end
 end
