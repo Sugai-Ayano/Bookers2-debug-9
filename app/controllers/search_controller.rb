@@ -1,12 +1,16 @@
-class SearchController < ApplicationController
-  def search
-    @search_params = user_search_params
-    @users = User.search(@search_params).includes(:books)
-  end
+	class SearchController < ApplicationController
+	before_action :authenticate_user!
 
-  private
+	  def search
+	    @model = params[:model]
+	    @content = params[:content]
+	    @mathod = params[:method]
+	    if @model == 'user'
+	    	@records = User.search_for(@content, @method)
+	    else
+	    	@records = Book.search_for(@content, @method)
+	    end
+	  end
+	end
 
-  def user_search_params
-    params.fetch(:search, {}).permit(:user, :book)
-  end
-end
+
